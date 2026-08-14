@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自适应视频播放器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0d0d0d;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+        }
+
+        .video-wrapper {
+            background: #000;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.06) inset;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: auto;
+            height: auto;
+            max-width: 98vw;
+            max-height: 94vh;
+            transition: all 0.2s ease;
+        }
+
+        .video-wrapper video {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 94vh;
+            object-fit: contain;
+            background: #000;
+            border-radius: 24px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .video-wrapper {
+                border-radius: 16px;
+            }
+            .video-wrapper video {
+                border-radius: 16px;
+                max-height: 90vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="video-wrapper">
+        <video id="mainVideo" src="video.mp4" controls autoplay muted playsinline>
+            <div style="color:#888; padding:2rem; text-align:center; background:#1a1a1a; border-radius:16px; border:1px solid #333;">
+                ⚠️ 视频文件未找到或浏览器不支持<br>
+                <span style="font-size:0.9rem; opacity:0.7;">请确认与HTML同目录下存在视频文件，并检查 src 属性</span>
+            </div>
+        </video>
+    </div>
+
+    <script>
+        (function() {
+            const video = document.getElementById('mainVideo');
+
+            if (!video) {
+                console.warn('video element not found');
+                return;
+            }
+
+            const wrapper = document.querySelector('.video-wrapper');
+
+            function fitVideoToWrapper() {
+                if (!video.videoWidth || !video.videoHeight) return;
+
+                const vw = video.videoWidth;
+                const vh = video.videoHeight;
+                const maxWidth = window.innerWidth * 0.98;
+                const maxHeight = window.innerHeight * 0.94;
+
+                let displayWidth = vw;
+                let displayHeight = vh;
+
+                if (displayWidth > maxWidth || displayHeight > maxHeight) {
+                    const scaleX = maxWidth / displayWidth;
+                    const scaleY = maxHeight / displayHeight;
+                    const scale = Math.min(scaleX, scaleY);
+                    displayWidth = Math.floor(displayWidth * scale);
+                    displayHeight = Math.floor(displayHeight * scale);
+                }
+
+                wrapper.style.width = displayWidth + 'px';
+                wrapper.style.height = displayHeight + 'px';
+
+                video.style.width = displayWidth + 'px';
+                video.style.height = displayHeight + 'px';
+            }
+
+            function handleResize() {
+                requestAnimationFrame(fitVideoToWrapper);
+            }
+
+            video.addEventListener('loadedmetadata', function() {
+                fitVideoToWrapper();
+            });
+
+            video.addEventListener('loadeddata', function() {
+                fitVideoToWrapper();
+            });
+
+            window.addEventListener('resize', handleResize);
+            window.addEventListener('orientationchange', function() {
+                setTimeout(handleResize, 300);
+            });
+
+            setTimeout(fitVideoToWrapper, 200);
+
+            video.play().catch(() => {});
+
+            console.log('video player ready – video size adaptive');
+        })();
+    </script>
+
+</body>
+</html>
